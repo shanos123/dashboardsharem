@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .meter-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .meter {
+            display: inline-block;
+            margin: 20px;
+        }
+        canvas {
+            background-color: #f7f7f7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sensor Data Dashboard</h1>
+
+    <div class="meter-container">
+        <div class="meter">
+            <h2>Temperature (°C)</h2>
+            <canvas id="temperatureMeter" width="200" height="200"></canvas>
+            <p id="tempValue">-</p>
+        </div>
+        <div class="meter">
+            <h2>Humidity (%)</h2>
+            <canvas id="humidityMeter" width="200" height="200"></canvas>
+            <p id="humValue">-</p>
+        </div>
+        <div class="meter">
+            <h2>Pressure (hPa)</h2>
+            <canvas id="pressureMeter" width="200" height="200"></canvas>
+            <p id="pressValue">-</p>
+        </div>
+    </div>
+
+    <script>
+
+        function drawMeter(canvasId, value, min, max) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext("2d");
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+        
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            // Draw background arc
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.75 * Math.PI, 0.25 * Math.PI, false);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = "#ddd";  // Light grey background arc
+            ctx.stroke();
+        
+            // Ensure value is within the min-max range
+            const clampedValue = Math.min(Math.max(value, min), max);
+        
+            // Calculate angle for the value
+            const angle = 0.75 * Math.PI + (clampedValue - min) / (max - min) * 1.5 * Math.PI;
+        
+            // Draw value arc
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.75 * Math.PI, angle, false);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = "#4CAF50";  // Green arc for the current value
+            ctx.stroke();
+        
+            // Draw needle
+            const needleX = centerX + radius * 0.9 * Math.cos(angle);
+            const needleY = centerY + radius * 0.9 * Math.sin(angle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(needleX, needleY);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#FF5733";  // Orange needle
+            ctx.stroke();
+        
+            // Draw value text in the center
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#333";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(clampedValue.toFixed(1), centerX, centerY);
+            console.log("Temperature:", temp, "Humidity:", hum, "Pressure:", press);
+        }
+        
+
+        // Function to update the meters
+        function updateMeters(temp, hum, press) {
+            drawMeter("temperatureMeter", temp, -10, 50);
+            drawMeter("humidityMeter", hum, 0, 100);
+            drawMeter("pressureMeter", press, 900, 1100);
+
+            document.getElementById("tempValue").textContent = `${temp.toFixed(1)} °C`;
+            document.getElementById("humValue").textContent = `${hum.toFixed(1)} %`;
+            document.getElementById("pressValue").textContent = `${press.toFixed(1)} hPa`;
+        }
+
+        // Parse sensor data from template
+        const sensorData = JSON.parse('{{ .SensorDataJSON  }}');
+       
+
+
+        // Initialize the meters with sensor data if available
+        if (sensorData) {
+            updateMeters(sensorData.temperature, sensorData.humidity, sensorData.pressure);
+        } else {
+            console.error("No sensor data available");
+        }
+    </script>
+</body>
+</html>
+
+</body>
+</html>
